@@ -40,10 +40,32 @@ describe('HTTP API tests', () => {
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('message', 'username taken');
   });
-
-
-
-  // test('POST /login', async () => {});
-  // test('GET /jokes', async () => {});
+  test('[3] POST /login_success', async () => {
+    let res = await request(server).post('/api/auth/register').send({ username: "sue", password: "1234" });
+    res = await request(server).post('/api/auth/login').send({ username: "sue", password: "1234" });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'welcome, sue');
+    expect(res.body).toHaveProperty('token');
+    expect(res.body.token).toBeDefined();
+  });
+  test('[4] POST /login_failure', async () => {
+    let res = await request(server).post('/api/auth/register').send({ username: "sue", password: "1234" });
+    
+    res = await request(server).post('/api/auth/login').send({ username: null, password: '1234' });
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message', 'username and password required');
+    
+    res = await request(server).post('/api/auth/login').send({ username: 'sue', password: null });
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message', 'username and password required');
+    
+    res = await request(server).post('/api/auth/login').send({ username: "sue", password: "5678" });
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'invalid credentials');
+  });
+  
+  
+  // test('GET /jokes_success', async () => {});
+  // test('GET /jokes_failure', async () => {});
 })
 
