@@ -6,16 +6,16 @@ module.exports = (req, res, next) => {
   const token = req.headers.authorization;
 
   jwt.verify(token, JWT_SECRET, async (err, decodedToken) => {
-    console.log(decodedToken)
+    console.log(token)
+    if(!token){
+      res.status(401).json({ message: "token required" })
+      return
+    }
     
     if(err){
       console.log('Error: ', err);
-      res.status(401).json({ message: "token required" });
-    }
-
-    const user = await User.findById(decodedToken.subject);
-    if(decodedToken.iat < user.logged_out_time){
-      res.status(401).json({ message: "token invalid" })
+      res.status(401).json({ message: "token invalid" });
+      return;
     }
 
     req.decodedJwt = decodedToken;

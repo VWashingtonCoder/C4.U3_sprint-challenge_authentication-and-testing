@@ -64,10 +64,26 @@ describe('HTTP API tests', () => {
     expect(res.body).toHaveProperty('message', 'invalid credentials');
   });
   
-  test('[5] GET /jokes_failure', async () => {
-    let res = await request(server).get('/api/jokes');
+  test('[5] GET /jokes_failure: no token', async () => {
+    let res = await request(server).get('/api/jokes')
     expect(res.status).toBe(401)
     expect(res.body).toHaveProperty('message', 'token required')
+  });
+  test('[5] GET /jokes_failure: invalid token', async () => {
+    let res = await request(server).get('/api/jokes').set('Authorization', 'foobar')
+    expect(res.status).toBe(401)
+    expect(res.body).toHaveProperty('message', 'token invalid')
+  });
+
+
+  test('[6] GET /jokes_success', async () => {
+    let res = await request(server).post('/api/auth/register').send({ username: "sue", password: "1234" });
+    res = await request(server).post('/api/auth/login').send({ username: "sue", password: "1234" });
+    const token = res.body.token
+
+    res = await request(server).get('/api/jokes').set('Authorization', token);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(3);
   });
 })
 
