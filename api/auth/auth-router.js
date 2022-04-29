@@ -1,32 +1,22 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../users/users-model');
 const router = require('express').Router();
+const { BCRYPT_ROUNDS, JWT_SECRET } = require('../../data/dbConfig');
+const { validateUserData, validateUniqueName } = require('../middleware/auth-middleware');
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
-  /*
-    IMPLEMENT
-    You are welcome to build additional middlewares to help with the endpoint's functionality.
-    DO NOT EXCEED 2^8 ROUNDS OF HASHING!
+router.post('/register', validateUserData, validateUniqueName, (req, res, next) => {
+  let user = req.body
 
-    1- In order to register a new account the client must provide `username` and `password`:
-      {
-        "username": "Captain Marvel", // must not exist already in the `users` table
-        "password": "foobar"          // needs to be hashed before it's saved
-      }
+  const hash = bcrypt.hashSync(user.password, BCRYPT_ROUNDS);
+  user.password = hash;
 
-    2- On SUCCESSFUL registration,
-      the response body should have `id`, `username` and `password`:
-      {
-        "id": 1,
-        "username": "Captain Marvel",
-        "password": "2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG"
-      }
-
-    3- On FAILED registration due to `username` or `password` missing from the request body,
-      the response body should include a string exactly as follows: "username and password required".
-
-    4- On FAILED registration due to the `username` being taken,
-      the response body should include a string exactly as follows: "username taken".
-  */
+  User.add(user)
+    .then(newUser => {
+      res.status(201).json(newUser);
+    })
+    .catch(() => res.status(500).json({ message: 'User could not be added.' }));
+  
 });
 
 router.post('/login', (req, res) => {
