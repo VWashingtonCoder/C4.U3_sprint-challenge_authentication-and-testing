@@ -4,8 +4,10 @@ const User = require('../users/users-model');
 
 module.exports = (req, res, next) => {
   const token = req.headers.authorization;
-  
+
   jwt.verify(token, JWT_SECRET, async (err, decodedToken) => {
+    console.log(decodedToken)
+    
     if(err){
       console.log('Error: ', err);
       res.status(401).json({ message: "token required" });
@@ -20,5 +22,4 @@ module.exports = (req, res, next) => {
     console.log('decoded token', req.decodedJwt);
     next()
   })
-  
 };

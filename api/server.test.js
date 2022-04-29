@@ -65,7 +65,19 @@ describe('HTTP API tests', () => {
   });
   
   
-  // test('GET /jokes_success', async () => {});
-  // test('GET /jokes_failure', async () => {});
+  test('[5] GET /jokes_success', async () => {
+    let res = await request(server).post('/api/auth/register').send({ username: "sue", password: "1234" });
+    res = await request(server).post('/api/auth/login').send({ username: "sue", password: "1234" });
+    const token = res.body.token
+
+    res = await request(server).get('/api/jokes').set('Authorization', token);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(3);
+  });
+  test('GET /jokes_failure', async () => {
+    let res = await request(server).get('/api/jokes');
+    expect(res.status).toBe(401)
+    expect(res.body).toHaveProperty('message', 'token required')
+  });
 })
 

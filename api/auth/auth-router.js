@@ -21,14 +21,23 @@ router.post('/register', validateUserData, validateUniqueName, (req, res, next) 
 
 router.post('/login', validateUserData, (req, res, next) => {
   const { username, password } = req.body;
-  console.log(JWT_SECRET)
+  
+  function generateToken(user) {
+    const payload = {
+      subject: user.id,
+      username: user.username,
+    };
+    const options = { expiresIn: '1d' };
+    return jwt.sign(payload, JWT_SECRET, options)
+  }
+
   User.findBy({ username })
     .then(user => {
-      console.log(user)
       if(user && bcrypt.compareSync(password, user.password)){
+        const token = generateToken(user)
         res.status(200).json({
           message: `welcome, ${username}`,
-          token: generateToken(user) 
+          token: token 
         });
       } else {
         res.status(401).json({ message: 'invalid credentials' });
@@ -41,13 +50,6 @@ router.post('/login', validateUserData, (req, res, next) => {
     })
 });
 
-function generateToken(user) {
-  const payload = {
-    subject: user.id,
-    username: user.username,
-  };
-  const options = { expiresIn: '1d' };
-  return jwt.sign(payload, JWT_SECRET, options)
-}
+
 
 module.exports = router;
